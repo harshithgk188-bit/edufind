@@ -1,0 +1,96 @@
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from .config import settings
+from .database import engine, Base, get_db
+from .models import College, District, Course
+from .utils.seed_data import seed_database
+
+# Import routers
+from .routers import (
+    auth_router,
+    districts_router,
+    courses_router,
+    colleges_router,
+    ratings_router,
+    favorites_router,
+    recommendations_router,
+    ai_router,
+    admin_router
+)
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    description="REST API for EduFind – Smart College & Course Discovery and Recommendation System"
+)
+
+# Parse CORS allowed origins from environment variable
+raw_origins = settings.ALLOWED_ORIGINS.strip() if settings.ALLOWED_ORIGINS else "*"
+if raw_origins == "*":
+    origins = ["*"]
+else:
+    origins = [orig.strip() for orig in raw_origins.split(",") if orig.strip()]
+    for dev_origin in ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]:
+        if dev_origin not in origins:
+            origins.append(dev_origin)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("startup")
+def startup_event():
+    # Auto-seed database if empty
+    db = next(get_db())
+    try:
+        if db.query(College).count() == 0:
+            print("[INFO] Seeding initial database...")
+            seed_database(db)
+            print("[SUCCESS] Initial seed data created successfully.")
+    except Exception as e:
+        print(f"[WARNING] Database startup notice: {e}")
+    finally:
+        db.close()
+
+# Mount API Routers
+app.include_router(auth_router, prefix="/api")
+app.include_router(districts_router, prefix="/api")
+app.include_router(courses_router, prefix="/api")
+app.include_router(colleges_router, prefix="/api")
+app.include_router(ratings_router, prefix="/api")
+app.include_router(favorites_router, prefix="/api")
+app.include_router(recommendations_router, prefix="/api")
+app.include_router(ai_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
+
+@app.get("/")
+def root():
+    return {
+        "app": settings.PROJECT_NAME,
+        "version": settings.PROJECT_VERSION,
+        "status": "online",
+        "documentation": "/docs"
+    }
+
+@app.get("/api/health")
+def health(db: Session = Depends(get_db)):
+    colleges_count = db.query(College).count()
+    districts_count = db.query(District).count()
+    courses_count = db.query(Course).count()
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "stats": {
+            "colleges": colleges_count,
+            "districts": districts_count,
+            "courses": courses_count
+        }
+    }
