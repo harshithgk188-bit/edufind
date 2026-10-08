@@ -19,9 +19,6 @@ from .routers import (
     admin_router
 )
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
@@ -48,17 +45,26 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup_event():
-    # Auto-seed database if empty
-    db = next(get_db())
+    # Safe table creation
     try:
-        if db.query(College).count() == 0:
-            print("[INFO] Seeding initial database...")
-            seed_database(db)
-            print("[SUCCESS] Initial seed data created successfully.")
+        print("[INFO] Checking and creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        print("[SUCCESS] Database tables verified.")
+    except Exception as e:
+        print(f"[WARNING] Database table creation notice: {e}")
+
+    # Auto-seed database if empty
+    try:
+        db = next(get_db())
+        try:
+            if db.query(College).count() == 0:
+                print("[INFO] Seeding initial database...")
+                seed_database(db)
+                print("[SUCCESS] Initial seed data created successfully.")
+        finally:
+            db.close()
     except Exception as e:
         print(f"[WARNING] Database startup notice: {e}")
-    finally:
-        db.close()
 
 # Mount API Routers
 app.include_router(auth_router, prefix="/api")
