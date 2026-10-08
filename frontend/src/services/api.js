@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// Read API URL from environment variable VITE_API_URL
-// In development, falls back to '/api' which is proxied by Vite dev server
-const rawApiUrl = import.meta.env.VITE_API_URL;
+// Read API URL from environment variable VITE_API_URL or use live production Render backend
+const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://edufind-api-wy4u.onrender.com' : '/api');
 let apiBaseUrl = '/api';
 
 if (rawApiUrl && typeof rawApiUrl === 'string' && rawApiUrl.trim() !== '') {
