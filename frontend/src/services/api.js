@@ -1,9 +1,15 @@
 import axios from 'axios';
 
-// Read API URL from environment variable VITE_API_URL or use live production Render backend
-const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://edufind-api-wy4u.onrender.com' : '/api');
-let apiBaseUrl = '/api';
+// Target live production Render backend
+const LIVE_BACKEND_URL = 'https://edufind-api-wy4u.onrender.com';
 
+let rawApiUrl = import.meta.env.VITE_API_URL;
+// Override stale/dead Render URL or empty env var
+if (!rawApiUrl || typeof rawApiUrl !== 'string' || rawApiUrl.includes('p9y8') || rawApiUrl.trim() === '') {
+  rawApiUrl = LIVE_BACKEND_URL;
+}
+
+let apiBaseUrl = `${LIVE_BACKEND_URL}/api`;
 if (rawApiUrl && typeof rawApiUrl === 'string' && rawApiUrl.trim() !== '') {
   const trimmed = rawApiUrl.trim().replace(/\/+$/, '');
   apiBaseUrl = trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
