@@ -88,15 +88,22 @@ def root():
 
 @app.get("/api/health")
 def health(db: Session = Depends(get_db)):
-    colleges_count = db.query(College).count()
-    districts_count = db.query(District).count()
-    courses_count = db.query(Course).count()
-    return {
-        "status": "healthy",
-        "database": "connected",
-        "stats": {
-            "colleges": colleges_count,
-            "districts": districts_count,
-            "courses": courses_count
+    try:
+        colleges_count = db.query(College).count()
+        districts_count = db.query(District).count()
+        courses_count = db.query(Course).count()
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "stats": {
+                "colleges": colleges_count,
+                "districts": districts_count,
+                "courses": courses_count
+            }
         }
-    }
+    except Exception as e:
+        return {
+            "status": "degraded",
+            "database": "disconnected",
+            "error": str(e)
+        }
