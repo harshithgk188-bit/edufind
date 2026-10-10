@@ -53,14 +53,15 @@ def startup_event():
     except Exception as e:
         print(f"[WARNING] Database table creation notice: {e}")
 
-    # Auto-seed database if empty
+    # Auto-seed database if fewer than full dataset
     try:
         db = next(get_db())
         try:
-            if db.query(College).count() == 0:
-                print("[INFO] Seeding initial database...")
-                seed_database(db)
-                print("[SUCCESS] Initial seed data created successfully.")
+            colleges_count = db.query(College).count()
+            if colleges_count < 60:
+                print(f"[INFO] Current college count is {colleges_count}. Seeding/updating comprehensive database...")
+                res = seed_database(db)
+                print(f"[SUCCESS] Database populated: {res.get('message')}")
         finally:
             db.close()
     except Exception as e:

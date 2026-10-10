@@ -20,8 +20,8 @@ export const CompareProvider = ({ children }) => {
     if (selectedColleges.some((c) => c.id === college.id)) {
       return { success: false, message: 'College is already in comparison.' };
     }
-    if (selectedColleges.length >= 3) {
-      return { success: false, message: 'You can compare a maximum of 3 colleges at a time.' };
+    if (selectedColleges.length >= 4) {
+      return { success: false, message: 'You can compare a maximum of 4 colleges at a time.' };
     }
     setSelectedColleges([...selectedColleges, college]);
     return { success: true };

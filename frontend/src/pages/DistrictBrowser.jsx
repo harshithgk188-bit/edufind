@@ -161,38 +161,40 @@ export default function DistrictBrowser() {
           </div>
 
           {/* Top-Rated Colleges in This District */}
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4">
-              Top-Rated Institutions in {districtStats.district_name}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {districtStats.top_rated_colleges.map((col) => (
-                <Link
-                  key={col.id}
-                  to={`/colleges/${col.slug || col.id}`}
-                  className="p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-400 hover:shadow-sm transition-all flex items-center gap-3.5 group bg-white"
-                >
-                  <img
-                    src={col.image_url || "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=400&q=80"}
-                    alt={col.name}
-                    className="w-14 h-14 rounded-xl object-cover shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                      {col.name}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <CollegeTypeBadge type={col.college_type} />
-                      <div className="flex items-center gap-1 text-xs text-amber-700 font-bold">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <span>{col.rating}</span>
+          {districtStats.top_rated_colleges && districtStats.top_rated_colleges.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4">
+                Top-Rated Institutions in {districtStats.district_name}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {districtStats.top_rated_colleges.map((col) => (
+                  <Link
+                    key={col.id}
+                    to={`/colleges/${col.slug || col.id}`}
+                    className="p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-400 hover:shadow-sm transition-all flex items-center gap-3.5 group bg-white"
+                  >
+                    <img
+                      src={col.image_url || "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=400&q=80"}
+                      alt={col.name}
+                      className="w-14 h-14 rounded-xl object-cover shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                        {col.name}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <CollegeTypeBadge type={col.college_type} />
+                        <div className="flex items-center gap-1 text-xs text-amber-700 font-bold">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          <span>{col.rating}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       )}

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Heart, Scale, ExternalLink, Award, Check } from 'lucide-react';
+import { MapPin, Heart, Scale, ExternalLink, Award, Check, TrendingUp } from 'lucide-react';
 import StarRating from '../common/StarRating';
-import { VerifiedBadge, CollegeTypeBadge } from '../common/Badge';
+import { VerifiedBadge, CollegeTypeBadge, OwnershipBadge, CategoryBadge } from '../common/Badge';
 import { useCompare } from '../../context/CompareContext';
 import { useFavorites } from '../../context/FavoritesContext';
 
@@ -30,6 +30,8 @@ export default function CollegeCard({ college }) {
     toggleFavorite(college);
   };
 
+  const hasPlacement = college.average_package || college.highest_package;
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 flex flex-col overflow-hidden group">
       
@@ -41,12 +43,12 @@ export default function CollegeCard({ college }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
 
         {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center">
-          <VerifiedBadge verified={college.verified} />
-          <CollegeTypeBadge type={college.college_type} />
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 items-center max-w-[80%]">
+          <VerifiedBadge verified={college.verified} status={college.verification_status} />
+          {college.ownership && <OwnershipBadge ownership={college.ownership} />}
         </div>
 
         {/* Action icons on top right */}
@@ -65,43 +67,77 @@ export default function CollegeCard({ college }) {
         </div>
 
         {/* Accreditation on bottom left of image */}
-        {college.accreditation && (
-          <div className="absolute bottom-2.5 left-3 flex items-center gap-1 text-[11px] font-semibold text-white/90 bg-slate-900/60 px-2 py-0.5 rounded backdrop-blur-xs">
-            <Award className="w-3.5 h-3.5 text-amber-300" />
-            <span>{college.accreditation}</span>
-          </div>
-        )}
+        <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
+          {college.accreditation && (
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-white/90 bg-slate-900/70 px-2 py-0.5 rounded backdrop-blur-xs">
+              <Award className="w-3.5 h-3.5 text-amber-300" />
+              <span>{college.accreditation}</span>
+            </div>
+          )}
+          {college.college_type && (
+            <span className="text-[10px] font-semibold text-white/90 bg-indigo-900/60 px-2 py-0.5 rounded">
+              {college.college_type}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Card Content Body */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
-          {/* Location and District */}
+          {/* Location: City / Taluk + District */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
             <MapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-            <span>{college.district_name || "Karnataka"}</span>
+            <span>
+              {college.city ? `${college.city}, ` : ''}{college.district_name || "Karnataka"}
+            </span>
           </div>
 
-          {/* College Name */}
+          {/* College Name & Alternate Name */}
           <Link to={`/colleges/${college.slug || college.id}`}>
             <h3 className="text-base font-bold text-slate-900 hover:text-indigo-600 transition-colors line-clamp-2 leading-snug">
               {college.name}
             </h3>
+            {college.alternate_name && (
+              <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
+                ({college.alternate_name})
+              </p>
+            )}
           </Link>
 
-          {/* Ratings & Reviews */}
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-              <span className="text-xs font-bold text-amber-800">{college.overall_rating}</span>
-              <StarRating rating={college.overall_rating} size="xs" />
+          {/* Category Tag */}
+          {college.college_category && (
+            <div className="mt-2">
+              <CategoryBadge category={college.college_category} />
             </div>
-            <span className="text-xs text-slate-500">
-              ({college.review_count} {college.review_count === 1 ? 'review' : 'reviews'})
-            </span>
+          )}
+
+          {/* Ratings & Placement */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                <span className="text-xs font-bold text-amber-800">{college.overall_rating}</span>
+                <StarRating rating={college.overall_rating} size="xs" />
+              </div>
+              <span className="text-[11px] text-slate-500">
+                ({college.review_count || 0})
+              </span>
+            </div>
+
+            {hasPlacement ? (
+              <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                <TrendingUp className="w-3 h-3 text-emerald-600" />
+                <span>Avg: {college.average_package}</span>
+              </div>
+            ) : (
+              <span className="text-[11px] text-slate-400">
+                Placements unverified
+              </span>
+            )}
           </div>
 
           {/* Courses Tags */}
-          <div className="mt-3.5 flex flex-wrap gap-1.5">
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {college.courses_offered?.slice(0, 4).map((cCode, i) => (
               <span
                 key={i}
@@ -119,12 +155,18 @@ export default function CollegeCard({ college }) {
         </div>
 
         {/* Pricing & Footer Actions */}
-        <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
           <div>
-            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Starting Annual Fee</p>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Annual Fee</p>
             <p className="text-base font-extrabold text-slate-900">
-              {college.min_fees ? `₹${Number(college.min_fees).toLocaleString('en-IN')}` : '₹ Free / Govt'}
-              <span className="text-xs font-normal text-slate-500">/year</span>
+              {college.min_fees && Number(college.min_fees) > 0 ? (
+                <>
+                  ₹{Number(college.min_fees).toLocaleString('en-IN')}
+                  <span className="text-xs font-normal text-slate-500">/yr</span>
+                </>
+              ) : (
+                <span className="text-xs font-medium text-slate-500">Information not available</span>
+              )}
             </p>
           </div>
 
@@ -137,7 +179,7 @@ export default function CollegeCard({ college }) {
                   ? 'bg-indigo-600 text-white border-indigo-600'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
               }`}
-              title="Add to comparison table"
+              title="Add to comparison table (up to 4 colleges)"
             >
               {inCompare ? <Check className="w-3.5 h-3.5" /> : <Scale className="w-3.5 h-3.5" />}
               <span>{inCompare ? 'Added' : 'Compare'}</span>
